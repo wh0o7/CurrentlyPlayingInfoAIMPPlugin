@@ -23,13 +23,13 @@ public class WebSocketService : IWebSocketService
             Artist = receivedMessage.Artist;
             TrackTitle = receivedMessage.TrackTitle;
 
-            Console.WriteLine($"{IsPlaying}, {Artist}, {TrackTitle}  gg");
+            Console.WriteLine($"{IsPlaying}, {Artist}, {TrackTitle}");
         }
     }
 
     public void Connect()
     {
-        var wssv = new WebSocketServer($"ws://127.0.0.1:5544");
+        var wssv = new WebSocketServer($"ws://127.0.0.1:5543");
         wssv.AddWebSocketService<APIService>("/aimp");
         wssv.Start();
         Console.WriteLine("WebSocket Server started.");
