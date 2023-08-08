@@ -50,8 +50,7 @@ namespace AIMP.CurrentlyPlayingInfoPlugin
             };
 
             _webSocketClient.Connect();
-            _webSocketClient.Send(JsonSerializer.Serialize(trackInfoMessage));
-            _webSocketClient.Close(CloseStatusCode.Normal);
+            _webSocketClient.SendAsync(JsonSerializer.Serialize(trackInfoMessage), null);
             return Task.CompletedTask;
         }
 
