@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using System.Timers;
+using AIMP.CurrentlyPlayingInfoPlugin.Models;
 using AIMP.SDK;
 using AIMP.SDK.Player;
 using WebSocketSharp;
@@ -13,6 +14,7 @@ namespace AIMP.CurrentlyPlayingInfoPlugin
     public class CurrentlyPlayingInfoPlugin : AimpPlugin
     {
         private IAimpServicePlayer _playerService;
+        private bool IsWaitMode;
         private string _path = "./config.json";
         private Timer _updateTimer;
         private WebSocket _webSocketClient;
@@ -29,13 +31,35 @@ namespace AIMP.CurrentlyPlayingInfoPlugin
             };
 
             _updateTimer = new Timer(_pluginSettings.Interval) { AutoReset = true };
+            OnTimerElapsed(null, null);
             _updateTimer.Elapsed += OnTimerElapsed;
             _updateTimer.Start();
         }
 
         private async void OnTimerElapsed(object? sender, ElapsedEventArgs args)
         {
-            await SendTrackInfoAndIsPlaying();
+            try
+            {
+                _webSocketClient.Connect();
+                if (_webSocketClient.Ping())
+                {
+                    await SendTrackInfoAndIsPlaying();
+                    if (IsWaitMode) await DisableWaitMode();
+                    return;
+                }
+            }
+            catch
+            {
+                if (!IsWaitMode) await EnableWaitMode();
+            }
+
+            if (IsWaitMode)
+            {
+                await WaitModeTask();
+                return;
+            }
+
+            await EnableWaitMode();
         }
 
         private Task SendTrackInfoAndIsPlaying()
@@ -54,9 +78,31 @@ namespace AIMP.CurrentlyPlayingInfoPlugin
             return Task.CompletedTask;
         }
 
+        private Task WaitModeTask()
+        {
+            Console.WriteLine("Waiting for connecting.");
+            return Task.CompletedTask;
+        }
+
+        private Task EnableWaitMode()
+        {
+            IsWaitMode = true;
+            _updateTimer.Interval = _pluginSettings.WaitInterval;
+            return Task.CompletedTask;
+        }
+
+
+        private Task DisableWaitMode()
+        {
+            IsWaitMode = false;
+            _updateTimer.Interval = _pluginSettings.Interval;
+            return Task.CompletedTask;
+        }
+
         public override void Dispose()
         {
             _updateTimer.Close();
+            _webSocketClient.Close();
         }
 
         private PluginSettings LoadSettings()
@@ -75,20 +121,6 @@ namespace AIMP.CurrentlyPlayingInfoPlugin
             }
 
             return new PluginSettings();
-        }
-
-        private class TrackInfoMessage
-        {
-            public string TrackTitle { get; set; }
-            public string Artist { get; set; }
-            public bool IsPlaying { get; set; }
-        }
-
-        private class PluginSettings
-        {
-            public int Interval { get; set; } = 30000;
-            public string Host { get; set; } = "127.0.0.1";
-            public int Port { get; set; } = 5543;
         }
     }
 }
