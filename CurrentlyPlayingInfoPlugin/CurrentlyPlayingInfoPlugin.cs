@@ -14,7 +14,7 @@ namespace AIMP.CurrentlyPlayingInfoPlugin
     [AimpPlugin("Currently Playing Track Info Plugin", "Andruxxa7", "1.00")]
     public class CurrentlyPlayingInfoPlugin : AimpPlugin
     {
-        public static string PluginName { get; } = "Currently Playing Track Info Plugin";
+        private string PluginName { get; } = "Currently Playing Track Info Plugin";
         private IAimpServicePlayer _playerService;
         private bool IsWaitMode;
         private string _path = "./config.json";
