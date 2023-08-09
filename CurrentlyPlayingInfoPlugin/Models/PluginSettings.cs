@@ -1,4 +1,6 @@
-﻿namespace AIMP.CurrentlyPlayingInfoPlugin.Models;
+﻿using System.Text.Json.Serialization;
+
+namespace AIMP.CurrentlyPlayingInfoPlugin.Models;
 
 public class PluginSettings
 {

@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using System.Timers;
 using AIMP.CurrentlyPlayingInfoPlugin.Models;
+using AIMP.CurrentlyPlayingInfoPlugin.Services;
 using AIMP.SDK;
 using AIMP.SDK.Player;
 using WebSocketSharp;
@@ -13,31 +14,44 @@ namespace AIMP.CurrentlyPlayingInfoPlugin
     [AimpPlugin("Currently Playing Track Info Plugin", "Andruxxa7", "1.00")]
     public class CurrentlyPlayingInfoPlugin : AimpPlugin
     {
+        public static string PluginName { get; } = "Currently Playing Track Info Plugin";
         private IAimpServicePlayer _playerService;
         private bool IsWaitMode;
         private string _path = "./config.json";
         private Timer _updateTimer;
         private WebSocket _webSocketClient;
         private PluginSettings _pluginSettings;
+        private FileLogger? _logger;
 
         public override void Initialize()
         {
             _playerService = Player.ServicePlayer;
             _pluginSettings = LoadSettings();
+            var origin = $"ws://{_pluginSettings.Host}:{_pluginSettings.Port}";
+            if (_pluginSettings.DebugMode) _logger = new FileLogger();
 
-            _webSocketClient = new WebSocket($"ws://{_pluginSettings.Host}:{_pluginSettings.Port}/aimp")
+            _webSocketClient = new WebSocket($"{origin}/aimp")
             {
-                Origin = $"ws://{_pluginSettings.Host}:{_pluginSettings.Port}"
+                Origin = origin
             };
 
             _updateTimer = new Timer(_pluginSettings.Interval) { AutoReset = true };
             OnTimerElapsed(null, null);
             _updateTimer.Elapsed += OnTimerElapsed;
             _updateTimer.Start();
+            _logger?.Write($"{PluginName} Initialized!");
+        }
+
+        public override void Dispose()
+        {
+            _updateTimer.Close();
+            _webSocketClient.Close();
+            if (_pluginSettings.DebugMode) _logger?.Close();
         }
 
         private async void OnTimerElapsed(object? sender, ElapsedEventArgs args)
         {
+            _logger?.Write("Timer elapsed");
             try
             {
                 _webSocketClient.Connect();
@@ -75,12 +89,13 @@ namespace AIMP.CurrentlyPlayingInfoPlugin
 
             _webSocketClient.Connect();
             _webSocketClient.SendAsync(JsonSerializer.Serialize(trackInfoMessage), null);
+            _logger?.Write(nameof(SendTrackInfoAndIsPlaying), trackInfoMessage);
             return Task.CompletedTask;
         }
 
         private Task WaitModeTask()
         {
-            Console.WriteLine("Waiting for connecting.");
+            _logger?.Write("Waiting for connecting.");
             return Task.CompletedTask;
         }
 
@@ -88,6 +103,7 @@ namespace AIMP.CurrentlyPlayingInfoPlugin
         {
             IsWaitMode = true;
             _updateTimer.Interval = _pluginSettings.WaitInterval;
+            _logger?.Write("Wait mode enabled.");
             return Task.CompletedTask;
         }
 
@@ -96,13 +112,8 @@ namespace AIMP.CurrentlyPlayingInfoPlugin
         {
             IsWaitMode = false;
             _updateTimer.Interval = _pluginSettings.Interval;
+            _logger?.Write("Wait mode disabled.");
             return Task.CompletedTask;
-        }
-
-        public override void Dispose()
-        {
-            _updateTimer.Close();
-            _webSocketClient.Close();
         }
 
         private PluginSettings LoadSettings()
@@ -116,7 +127,7 @@ namespace AIMP.CurrentlyPlayingInfoPlugin
                 }
                 catch (Exception ex)
                 {
-                    File.WriteAllText($"Error while loading settings from your json: {ex.Message}", "./error.txt");
+                    _logger?.Write($"Error while loading settings from your json: {ex.Message}");
                 }
             }
 
