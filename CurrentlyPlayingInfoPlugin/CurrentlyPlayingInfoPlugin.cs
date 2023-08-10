@@ -36,8 +36,12 @@ namespace AIMP.CurrentlyPlayingInfoPlugin
             };
 
             _updateTimer = new Timer(_pluginSettings.Interval) { AutoReset = true };
-            OnTimerElapsed(null, null);
             _updateTimer.Elapsed += OnTimerElapsed;
+            Task.Run(async () =>
+            {
+                await Task.Delay(5000);
+                OnTimerElapsed(null, null);
+            });
             _updateTimer.Start();
             _logger?.Write($"{PluginName} Initialized!");
         }
@@ -45,6 +49,8 @@ namespace AIMP.CurrentlyPlayingInfoPlugin
         public override void Dispose()
         {
             _updateTimer.Close();
+
+            _webSocketClient.SendAsync(JsonSerializer.Serialize(new TrackInfoMessage { IsPlaying = false }), null);
             _webSocketClient.Close();
             if (_pluginSettings.DebugMode) _logger?.Close();
         }
