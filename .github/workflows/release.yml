@@ -32,12 +32,12 @@ jobs:
       - name: Build Solution and zip release
         run: |
           msbuild.exe CurrentlyPlayingInfoPlugin.sln /p:platform="Any CPU" /p:configuration="Release"
-          cd ./CurrentlyPlayingInfoPlugin\bin\Release\net481
+          cd ./CurrentlyPlayingInfoPlugin/bin/Release/net481
           7z a -r CurrentlyPlayingInfoAIMPPlugin-Windows-x64.zip .
           
       - name: Create Release and Upload Assets
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            CurrentlyPlayingInfoPlugin\bin\Release\net481\CurrentlyPlayingInfoAIMPPlugin-Windows-x64.zip
+            CurrentlyPlayingInfoAIMPPlugin-Windows-x64.zip
           generate_release_notes: true
