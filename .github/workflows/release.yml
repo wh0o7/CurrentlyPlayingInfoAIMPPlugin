@@ -1,0 +1,46 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - v*
+
+jobs:  
+  build:    
+    runs-on: windows-latest
+    
+    steps:      
+      - uses: actions/checkout@v2
+      
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v1
+
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v1.0.5
+        
+      - name: Setup VSTest
+        uses: darenm/Setup-VSTest@v1
+
+      - name: Restore Packages
+        run: nuget restore CurrentlyPlayingInfoPlugin.sln
+        
+      - name: Install 7-Zip
+        run: |
+          # Download 7-Zip
+          Invoke-WebRequest -Uri 'https://www.7-zip.org/a/7z1900-x64.exe' -OutFile '7z.exe'
+
+          # Install 7-Zip silently
+          Start-Process -Wait -FilePath '7z.exe' -ArgumentList '/S'
+
+      - name: Build Solution and zip release
+        run: |
+          msbuild.exe CurrentlyPlayingInfoPlugin.sln /p:platform="Any CPU" /p:configuration="Release"
+          cd ./CurrentlyPlayingInfoPlugin\bin\Release\net481
+          7z a -r CurrentlyPlayingInfoAIMPPlugin-Windows-x64.zip .
+          
+      - name: Create Release and Upload Assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            CurrentlyPlayingInfoPlugin\bin\Release\net481\CurrentlyPlayingInfoAIMPPlugin-Windows-x64.zip
+          generate_release_notes: true
