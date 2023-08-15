@@ -44,7 +44,7 @@ This plugin serves as the client-side component for the [TelegramMusicStatus](ht
 
 ## Contributing
 
-Contributions are welcome! Feel free to open issues or pull requests on [GitHub](https://github.com/wh0o7/CurrentlyPlayingInfoAIMPPlugin).
+Contributions are welcome! Feel free to open issues or pull requests on [GitHub](https://github.com/wh0o7/CurrentlyPlayingInfoAIMPPlugin/issues).
 
 ## License
 
