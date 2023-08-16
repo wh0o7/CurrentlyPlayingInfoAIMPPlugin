@@ -18,16 +18,16 @@ Create a JSON configuration file named `config.json` in the `currently_playing_t
 
 ```json
 {
-    "Interval": 40000,
-    "WaitInterval": 90000,
+    "Interval": 40,
+    "WaitInterval": 90,
     "Host": "127.0.0.1",
     "Port": 5543,
     "DebugMode": false
 }
 ```
 
-- `"Interval"`: The interval (in milliseconds) between sending track information to the WebSocket server.
-- `"WaitInterval"`: The interval (in milliseconds) to wait before attempting to reconnect to the WebSocket server in case of failure.
+- `"Interval"`: The interval (in seconds) between sending track information to the WebSocket server.
+- `"WaitInterval"`: The interval (in seconds) to wait before attempting to reconnect to the WebSocket server in case of failure.
 - `"Host"`: The host address of the WebSocket server.(same as in main app
 - `"Port"`: The port number of the WebSocket server.
 - `"DebugMode"`: Set to `true` to enable debug mode (additional console output), or `false` to disable it(default).

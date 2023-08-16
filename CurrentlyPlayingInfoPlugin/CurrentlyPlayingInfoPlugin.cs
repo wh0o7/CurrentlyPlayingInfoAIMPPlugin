@@ -35,7 +35,7 @@ namespace AIMP.CurrentlyPlayingInfoPlugin
                 Origin = origin
             };
 
-            _updateTimer = new Timer(_pluginSettings.Interval) { AutoReset = true };
+            _updateTimer = new Timer(_pluginSettings.Interval * 1000) { AutoReset = true };
             _updateTimer.Elapsed += OnTimerElapsed;
             Task.Run(async () =>
             {
@@ -108,7 +108,7 @@ namespace AIMP.CurrentlyPlayingInfoPlugin
         private Task EnableWaitMode()
         {
             IsWaitMode = true;
-            _updateTimer.Interval = _pluginSettings.WaitInterval;
+            _updateTimer.Interval = _pluginSettings.WaitInterval * 1000;
             _logger?.Write("Wait mode enabled.");
             return Task.CompletedTask;
         }
@@ -117,7 +117,7 @@ namespace AIMP.CurrentlyPlayingInfoPlugin
         private Task DisableWaitMode()
         {
             IsWaitMode = false;
-            _updateTimer.Interval = _pluginSettings.Interval;
+            _updateTimer.Interval = _pluginSettings.Interval * 1000;
             _logger?.Write("Wait mode disabled.");
             return Task.CompletedTask;
         }
