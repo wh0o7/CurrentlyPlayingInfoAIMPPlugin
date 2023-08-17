@@ -22,6 +22,7 @@ namespace AIMP.CurrentlyPlayingInfoPlugin
         private WebSocket _webSocketClient;
         private PluginSettings _pluginSettings;
         private FileLogger? _logger;
+        private TrackInfoMessage _prevTrack;
 
         public override void Initialize()
         {
@@ -93,6 +94,13 @@ namespace AIMP.CurrentlyPlayingInfoPlugin
                 IsPlaying = _playerService.State == AimpPlayerState.Playing
             };
 
+            if (trackInfoMessage.Equals(this._prevTrack))
+            {
+                _logger?.Write("Same track, skip");
+                return Task.CompletedTask;
+            }
+
+            this._prevTrack = trackInfoMessage;
             _webSocketClient.Connect();
             _webSocketClient.SendAsync(JsonSerializer.Serialize(trackInfoMessage), null);
             _logger?.Write(nameof(SendTrackInfoAndIsPlaying), trackInfoMessage);
@@ -101,7 +109,7 @@ namespace AIMP.CurrentlyPlayingInfoPlugin
 
         private Task WaitModeTask()
         {
-            _logger?.Write("Waiting for connecting.");
+            _logger?.Write("Waiting for connectinon.");
             return Task.CompletedTask;
         }
 
