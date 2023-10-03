@@ -11,7 +11,7 @@ using Timer = System.Timers.Timer;
 
 namespace AIMP.CurrentlyPlayingInfoPlugin
 {
-    [AimpPlugin("Currently Playing Track Info Plugin", "Andruxxa7", "1.00")]
+    [AimpPlugin("Currently Playing Track Info Plugin", "wh0o7", "1.00")]
     public class CurrentlyPlayingInfoPlugin : AimpPlugin
     {
         private string PluginName { get; } = "Currently Playing Track Info Plugin";
@@ -145,7 +145,7 @@ namespace AIMP.CurrentlyPlayingInfoPlugin
                     _logger?.Write($"Error while loading settings from your json: {ex.Message}");
                 }
             }
-
+    
             return new PluginSettings();
         }
     }
