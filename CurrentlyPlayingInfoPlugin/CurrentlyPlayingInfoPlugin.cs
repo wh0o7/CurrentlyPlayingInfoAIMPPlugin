@@ -28,7 +28,7 @@ namespace AIMP.CurrentlyPlayingInfoPlugin
         {
             _playerService = Player.ServicePlayer;
             _pluginSettings = LoadSettings();
-            var origin = $"ws://{_pluginSettings.Host}:{_pluginSettings.Port}";
+            var origin = $"ws://{_pluginSettings.Host}:{_pluginSettings.Port.ToString()}";
             if (_pluginSettings.DebugMode) _logger = new FileLogger();
 
             _webSocketClient = new WebSocket($"{origin}/aimp")
@@ -45,6 +45,8 @@ namespace AIMP.CurrentlyPlayingInfoPlugin
             });
             _updateTimer.Start();
             _logger?.Write($"{PluginName} Initialized!");
+            _webSocketClient.Connect();
+            _logger?.Write($"Websocket connection state is {_webSocketClient.ReadyState.ToString()}");
         }
 
         public override void Dispose()
@@ -61,7 +63,7 @@ namespace AIMP.CurrentlyPlayingInfoPlugin
             _logger?.Write("Timer elapsed");
             try
             {
-                _webSocketClient.Connect();
+                if (!_webSocketClient.IsAlive && !_webSocketClient.Ping()) _webSocketClient.Connect();
                 if (_webSocketClient.Ping())
                 {
                     await SendTrackInfoAndIsPlaying();
@@ -86,7 +88,6 @@ namespace AIMP.CurrentlyPlayingInfoPlugin
         private Task SendTrackInfoAndIsPlaying()
         {
             var fileInfo = _playerService.CurrentFileInfo;
-
             var trackInfoMessage = new TrackInfoMessage
             {
                 TrackTitle = fileInfo.Title,
@@ -101,8 +102,8 @@ namespace AIMP.CurrentlyPlayingInfoPlugin
             }
 
             this._prevTrack = trackInfoMessage;
-            _webSocketClient.Connect();
-            _webSocketClient.SendAsync(JsonSerializer.Serialize(trackInfoMessage), null);
+            if (!_webSocketClient.Ping()) _webSocketClient.Connect();
+            _webSocketClient.Send(JsonSerializer.Serialize(trackInfoMessage));
             _logger?.Write(nameof(SendTrackInfoAndIsPlaying), trackInfoMessage);
             return Task.CompletedTask;
         }
